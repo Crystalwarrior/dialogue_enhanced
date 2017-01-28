@@ -11,7 +11,7 @@
 	New end_dialogue command, for when you want to end the dialogue prematurely! Useful with tags, though I'd reccomend doing the @tag "end" method instead (examplified below)
 
 Example dialogue code:
-'''
+```
 say 2 "Guard" "Halt! You have broken the law. Pay fine or die."
 say 1 "Turner" "..."
 choice "Fight" "Die"
@@ -30,6 +30,6 @@ goto "end"
 send_character_message 1 "set_dialogue_control false"
 set_cam_control false
 set_dialogue_visible false
-'''
+```
 Last tested and working on internal_testing branch
 [Preorder the game here.](http://www.wolfire.com/overgrowth)

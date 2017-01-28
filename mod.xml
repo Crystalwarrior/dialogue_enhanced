@@ -1,0 +1,11 @@
+<? xml version="1.0" ?>
+<Mod>
+    <Id>dialogue-enhancements</Id> 
+    <Name>Dialogue Enhancements</Name> 
+    <Version>1.0.0</Version>
+    <Author>Crystalwarrior</Author>
+    <SupportedVersion>*</SupportedVersion>
+
+    <!-- Indicate whether or not the game needs to restart for the mod to function properly -->
+    <NeedsRestart>false<NeedsRestart>
+</Mod>

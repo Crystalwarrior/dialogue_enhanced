@@ -24,9 +24,11 @@ enum ObjCommands {
     kSetCamControl,
     kSetAnimation,
     kSay,
+    //Dialogue Enhancements by Crystalwarrior from this line
     kGoto,
     kChoice,
-    kTag
+    kTag,
+    kSetScriptParam
 };
 
 class ScriptElement {
@@ -1120,9 +1122,16 @@ class Dialogue {
             se.obj_command = kGoto;
             const int kNumParams = 3;
             se.params.resize(kNumParams);
+            //Dynamically resize the script parameters based on input params
+            string lastToken;
             for(int i=0; i<kNumParams; ++i){
                 token_iter.FindNextToken(msg);
+                if(token_iter.GetToken(msg) == lastToken) {
+                    se.params.resize(i);
+                    break;
+                }
                 se.params[i] = token_iter.GetToken(msg);
+                lastToken = se.params[i];
             }
 
             //1. You also need a tag element which can be appended to any other line
@@ -1135,10 +1144,10 @@ class Dialogue {
             se.obj_command = kChoice;
             const int kNumParams = 4;
             se.params.resize(kNumParams);
+            //Dynamically resize the script parameters based on input params
             string lastToken;
             for(int i=0; i<kNumParams; ++i){
                 token_iter.FindNextToken(msg);
-                Print("  CHOICE: "+lastToken+" to "+token_iter.GetToken(msg)+"\n");
                 if(token_iter.GetToken(msg) == lastToken) {
                     se.params.resize(i);
                     break;
@@ -1146,12 +1155,26 @@ class Dialogue {
                 se.params[i] = token_iter.GetToken(msg);
                 lastToken = se.params[i];
             }
-            Print("  NUM:"+se.params.size());
         } else if(token == "@tag"){
             se.obj_command = kTag;
             se.params.resize(1);
             token_iter.FindNextToken(msg);
             se.params[0] = token_iter.GetToken(msg);
+        } else if(token == "set_script_param"){
+            se.obj_command = kSetScriptParam;
+            const int kNumParams = 8;
+            se.params.resize(kNumParams);
+            //Dynamically resize the script parameters based on input params
+            string lastToken;
+            for(int i=0; i<kNumParams; ++i){
+                token_iter.FindNextToken(msg);
+                if(token_iter.GetToken(msg) == lastToken) {
+                    se.params.resize(i);
+                    break;
+                }
+                se.params[i] = token_iter.GetToken(msg);
+                lastToken = se.params[i];
+            }
         }
     }
 
@@ -1477,33 +1500,36 @@ class Dialogue {
         case kGoto:
             if(type == kInGame){
                 string tag = script_element.params[0];
-                string name_param = script_element.params[1];
-                string condition = script_element.params[2];
-                Print("ATTN: "+tag+" "+name_param+" "+condition+"\n");
-                int num_hotspots = GetNumHotspots();
-                bool found = true;
-                if(name_param != tag && condition != name_param)
-                {
-                    found = false;
-                    for(int i=0; i<num_hotspots; ++i){
-                        Hotspot@ hotspot = ReadHotspot(i);
-                        Object@ hotspotObj = ReadObjectFromID(hotspot.GetID());
-                        ScriptParams@ hotspotParams = hotspotObj.GetScriptParams();
-                        if(!hotspotParams.HasParam("Name")) {
-                            Print("no name\n");
-                            continue;
-                        }
-                        string name_str = hotspotParams.GetString("Name");
-                        if(name_param == name_str){
-                            Print("condition "+condition+"bool "+hotspot.GetBoolVar(condition)+"\n");
-                            if(hotspot.GetBoolVar(condition) == true){
-                                found = true;
+                if(script_element.params.size() >= 3) {
+                    string name_param = script_element.params[1];
+                    string condition = script_element.params[2];
+                    Print("ATTN: "+tag+" "+name_param+" "+condition+"\n");
+                    int num_hotspots = GetNumHotspots();
+                    bool found = true;
+                    if(name_param != tag && condition != name_param)
+                    {
+                        found = false;
+                        for(int i=0; i<num_hotspots; ++i){
+                            Hotspot@ hotspot = ReadHotspot(i);
+                            Object@ hotspotObj = ReadObjectFromID(hotspot.GetID());
+                            ScriptParams@ hotspotParams = hotspotObj.GetScriptParams();
+                            if(!hotspotParams.HasParam("Name")) {
+                                Print("no name\n");
+                                continue;
+                            }
+                            string name_str = hotspotParams.GetString("Name");
+                            if(name_param == name_str){
+                                Print("condition "+condition+"bool "+hotspot.GetBoolVar(condition)+"\n");
+                                bool Check = condition.substr(0, 1) == "!";
+                                if(hotspot.GetBoolVar(condition) == !Check){
+                                    found = true;
+                                }
                             }
                         }
                     }
-                }
-                if(!found){
-                    return false;
+                    if(!found){
+                        return false;
+                    }
                 }
                 int i = 0;
                 int goto = -1;
@@ -1529,6 +1555,27 @@ class Dialogue {
                 dialogue_text_disp_chars = dialogue_text.length();
             }
             return true;
+        case kSetScriptParam:
+            if(type == kInGame){
+                Object @obj = ReadObjectFromID(dialogue_obj_id);
+                ScriptParams@ params = obj.GetScriptParams();
+
+                int Max = int(script_element.params.size());
+                if(Max % 2 == 1)
+                    DebugText("kSetScriptParam", "ERROR: set_script_param - Number of parameters doesn't match given variables.", 3.0f); //Yay error handling!
+                Max = Max - Max % 2; //This makes it so every parameter HAS to have a value too
+                for(int i=0; i<Max; i += 2) {
+                    string param = script_element.params[i];
+                    string val = script_element.params[i+1];
+                    if(param != "Dialogue" && param != "DisplayName" && param != "NumParticipants" && param != "Script" && param.substr(0, 4) != "obj_") { //parameter b
+                        DebugText("kSetScriptParam", "test: "+atoi(val)+" "+atof(val)+" "+val, 3.0f);
+                        params.SetString(param, val);
+                    }
+                    else
+                        DebugText("kSetScriptParam", "ERROR: set_script_param - parameter "+param+" cannot be modified!", 3.0f);
+                }
+            }
+            break;
         default: { 
             TokenIterator token_iter;
             token_iter.Init();

@@ -1501,28 +1501,40 @@ class Dialogue {
             if(type == kInGame){
                 string tag = script_element.params[0];
                 if(script_element.params.size() >= 3) {
-                    string name_param = script_element.params[1];
-                    string condition = script_element.params[2];
-                    Print("ATTN: "+tag+" "+name_param+" "+condition+"\n");
-                    int num_hotspots = GetNumHotspots();
-                    bool found = true;
-                    if(name_param != tag && condition != name_param)
-                    {
-                        found = false;
-                        for(int i=0; i<num_hotspots; ++i){
-                            Hotspot@ hotspot = ReadHotspot(i);
-                            Object@ hotspotObj = ReadObjectFromID(hotspot.GetID());
-                            ScriptParams@ hotspotParams = hotspotObj.GetScriptParams();
-                            if(!hotspotParams.HasParam("Name")) {
-                                Print("no name\n");
-                                continue;
+                    Object @obj = ReadObjectFromID(dialogue_obj_id);
+                    ScriptParams@ params = obj.GetScriptParams();
+
+                    bool found = false;
+
+                    int Max = int(script_element.params.size())-1;
+                    if(Max % 2 == 1)
+                        DebugText("kSetScriptParam", "ERROR: goto - Number of parameters doesn't match given variables.", 3.0f);
+                    Max = Max - Max % 2; //This makes it so every parameter HAS to have a value too
+                    for(int i=1; i<=Max; i += 2) {
+                        string param = script_element.params[i];
+                        string val = script_element.params[i+1];
+                        if(params.HasParam(param)) {
+                            if(params.GetString(param) == val) {
+                                found = true;
+                                break;
                             }
-                            string name_str = hotspotParams.GetString("Name");
-                            if(name_param == name_str){
-                                Print("condition "+condition+"bool "+hotspot.GetBoolVar(condition)+"\n");
-                                bool Check = condition.substr(0, 1) == "!";
-                                if(hotspot.GetBoolVar(condition) == !Check){
-                                    found = true;
+                        }
+                        else { //Must be a hotspot, then?
+                            int num_hotspots = GetNumHotspots();
+                            for(int j=0; j<num_hotspots; ++j){
+                                Hotspot@ hotspot = ReadHotspot(j);
+                                Object@ hotspotObj = ReadObjectFromID(hotspot.GetID());
+                                ScriptParams@ hotspotParams = hotspotObj.GetScriptParams();
+                                if(!hotspotParams.HasParam("Name")) {
+                                    continue;
+                                }
+                                string Name = hotspotParams.GetString("Name");
+                                if(param == Name){
+                                    bool Check = val.substr(0, 1) == "!";
+                                    if(hotspot.GetBoolVar(val) == !Check){
+                                        found = true;
+                                        break;
+                                    }
                                 }
                             }
                         }

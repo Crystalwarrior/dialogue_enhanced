@@ -1,5 +1,5 @@
 # dialogue_enhanced
-[Forum post NOT DONE](http://forums.wolfire.com/viewtopic.php?f=)  
+[Forum post](http://forums.wolfire.com/viewtopic.php?f=16&t=39819)  
 ## Howto use:  
 
 1. Put folder in data/mods

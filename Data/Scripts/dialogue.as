@@ -639,7 +639,6 @@ class Dialogue {
         while(!stop){
             if(index < int(strings.size())){
                 stop = ExecuteScriptElement(strings[index], kInGame);
-                Print("   Index "+index+" strings "+strings[index].str+" stop "+stop+"\n");
                 if(index == prev_last_wait){
                     skip_dialogue = false;
                 }
@@ -648,12 +647,10 @@ class Dialogue {
                 }
                 if(sub_index == -1){
                     ++index;
-                    Print("   Index++\n");
                 }
             } else {
                 stop = true;
                 index = 0;
-                Print("   Index=0\n");
             }
         }
 
@@ -1781,7 +1778,6 @@ class Dialogue {
             }
         } else if(token == "preview_dialogue"){
             DebugText("preview_dialogue", "preview_dialogue", 0.5f);
-            Print("Preview "+index+"\n");
             if(index == 0 && dialogue_obj_id != -1){
                 //camera.SetFlags(kPreviewCamera);
                 //SetGUIEnabled(false);

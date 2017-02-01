@@ -23,7 +23,12 @@ enum ObjCommands {
     kWaitForClick,
     kSetCamControl,
     kSetAnimation,
-    kSay
+    kSay,
+    //Dialogue Enhancements by Crystalwarrior from this line
+    kGoto,
+    kChoice,
+    kTag,
+    kSetScriptParam
 };
 
 class ScriptElement {
@@ -76,6 +81,7 @@ class Dialogue {
     bool waiting_for_dialogue;
     bool is_waiting_time;
     bool skip_dialogue; // This is dialogue we've already seen
+    bool ending; //used by end_dialogue because I can't figure out how to force-end dialogue before last line.
     float wait_time;
     string dialogue_name;
     string dialogue_text;
@@ -758,7 +764,30 @@ class Dialogue {
             }
         }
 
-        if(GetInputPressed(controller_id, "attack") && start_time != the_time){
+        int f = max(0, index-1);
+        if(int(strings.size()) > 0 && strings[f].obj_command == kChoice && sub_index == -1) {
+            for(int i=0; i<int(strings[f].params.size()); ++i) {
+                if(GetInputPressed(controller_id, i+1+"")) {
+                    int j = 0;
+                    int goto = -1;
+                    while(j < int(strings.size())){
+                        if(strings[j].obj_command == kTag && strings[j].params[0] == strings[f].params[i]) {
+                            goto = j;
+                            PlaySound("Data/Sounds/lugaru/consolesuccess.ogg");
+                            break;
+                        }
+                        j++;
+                    }
+                    if(goto >= 0) {
+                        index = goto;
+                        sub_index = -1;
+                        Play();
+                    }
+                    break;
+                }
+            }
+        }
+        else if(GetInputPressed(controller_id, "attack") && start_time != the_time){
             if(index != 0){
                 while(waiting_for_dialogue || is_waiting_time){
                     dialogue_text_disp_chars = dialogue_text.length();
@@ -1077,6 +1106,63 @@ class Dialogue {
                 params.SetInt("NumParticipants", atoi(token_iter.GetToken(msg)));
                 UpdateDialogueObjectConnectors(dialogue_obj_id);
             }
+        } else if(token == "goto"){
+            se.obj_command = kGoto;
+            const int kNumParams = 3;
+            se.params.resize(kNumParams);
+            //Dynamically resize the script parameters based on input params
+            string lastToken;
+            for(int i=0; i<kNumParams; ++i){
+                token_iter.FindNextToken(msg);
+                if(token_iter.GetToken(msg) == lastToken) {
+                    se.params.resize(i);
+                    break;
+                }
+                se.params[i] = token_iter.GetToken(msg);
+                lastToken = se.params[i];
+            }
+
+            //1. You also need a tag element which can be appended to any other line
+            //2. Simple goto does not do anything, you need a switch statement which triggers the choise
+            //3. You need it all work in the editor
+            //4. You need selection UI
+            //5. You need another element which sets the level param/triggers a function or else it's all kinda pointless
+            //6. You most likely need to be able to evaluate level params/function results in your switch statement
+        } else if(token == "choice"){
+            se.obj_command = kChoice;
+            const int kNumParams = 4;
+            se.params.resize(kNumParams);
+            //Dynamically resize the script parameters based on input params
+            string lastToken;
+            for(int i=0; i<kNumParams; ++i){
+                token_iter.FindNextToken(msg);
+                if(token_iter.GetToken(msg) == lastToken) {
+                    se.params.resize(i);
+                    break;
+                }
+                se.params[i] = token_iter.GetToken(msg);
+                lastToken = se.params[i];
+            }
+        } else if(token == "@tag"){
+            se.obj_command = kTag;
+            se.params.resize(1);
+            token_iter.FindNextToken(msg);
+            se.params[0] = token_iter.GetToken(msg);
+        } else if(token == "set_script_param"){
+            se.obj_command = kSetScriptParam;
+            const int kNumParams = 8;
+            se.params.resize(kNumParams);
+            //Dynamically resize the script parameters based on input params
+            string lastToken;
+            for(int i=0; i<kNumParams; ++i){
+                token_iter.FindNextToken(msg);
+                if(token_iter.GetToken(msg) == lastToken) {
+                    se.params.resize(i);
+                    break;
+                }
+                se.params[i] = token_iter.GetToken(msg);
+                lastToken = se.params[i];
+            }
         }
     }
 
@@ -1333,15 +1419,21 @@ class Dialogue {
                 show_dialogue = false;
             }
             break;
-        case kSetDialogueText:
+        case kSetDialogueText: {
             dialogue_text = script_element.params[0];
+
+            int Index = 0;
+            while((Index = dialogue_text.findFirst("\\n")) >= 0) {
+                dialogue_text.erase(Index, 2);
+                dialogue_text.insert(Index, "\n");
+            }
             dialogue_text_disp_chars = 0;
             if(type == kInGame){
                 waiting_for_dialogue = true;
             } else { 
                 dialogue_text_disp_chars = dialogue_text.length();
             }
-            return true;
+            return true; }
         case kSay:
             if(sub_index == -1 || type == kInEditor){
                 show_dialogue = true;
@@ -1362,14 +1454,19 @@ class Dialogue {
                 }
             }
             break;
-        case kAddDialogueText:
+        case kAddDialogueText: {
             dialogue_text += script_element.params[0];
+            int Index = 0;
+            while((Index = dialogue_text.findFirst("\\n")) >= 0) {
+                dialogue_text.erase(Index, 2);
+                dialogue_text.insert(Index, "\n");
+            }
             if(type == kInGame){
                 waiting_for_dialogue = true;
             } else { 
                 dialogue_text_disp_chars = dialogue_text.length();
             }
-            return true;
+            return true; }
         case kDialogueName:
             dialogue_name = script_element.params[0];
             break;
@@ -1388,6 +1485,97 @@ class Dialogue {
             break; }
         case kWaitForClick:
             return true;
+        case kGoto:
+            if(type == kInGame){
+                string tag = script_element.params[0];
+                if(script_element.params.size() >= 3) {
+                    Object @obj = ReadObjectFromID(dialogue_obj_id);
+                    ScriptParams@ params = obj.GetScriptParams();
+
+                    bool found = false;
+
+                    int Max = int(script_element.params.size())-1;
+                    if(Max % 2 == 1)
+                        DebugText("kSetScriptParam", "ERROR: goto - Number of parameters doesn't match given variables.", 3.0f);
+                    Max = Max - Max % 2; //This makes it so every parameter HAS to have a value too
+                    for(int i=1; i<=Max; i += 2) {
+                        string param = script_element.params[i];
+                        string val = script_element.params[i+1];
+                        if(params.HasParam(param)) {
+                            if(params.GetString(param) == val) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        else { //Must be a hotspot, then?
+                            int num_hotspots = GetNumHotspots();
+                            for(int j=0; j<num_hotspots; ++j){
+                                Hotspot@ hotspot = ReadHotspot(j);
+                                Object@ hotspotObj = ReadObjectFromID(hotspot.GetID());
+                                ScriptParams@ hotspotParams = hotspotObj.GetScriptParams();
+                                if(!hotspotParams.HasParam("Name")) {
+                                    continue;
+                                }
+                                string Name = hotspotParams.GetString("Name");
+                                if(param == Name){
+                                    bool Check = val.substr(0, 1) == "!";
+                                    if(hotspot.GetBoolVar(val) == !Check){
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if(!found){
+                        return false;
+                    }
+                }
+                int i = 0;
+                int goto = -1;
+                while(i < int(strings.size())){
+                    if(strings[i].obj_command == kTag && strings[i].params[0] == tag) {
+                        goto = i;
+                        break;
+                    }
+                    i++;
+                }
+                Print("Goto "+goto+" Index "+index+" Stringsize "+int(strings.size())+"\n");
+                index = goto;
+                sub_index = -1;
+            }
+            return false; //TODO: return true if we detect an infinite loop happening
+        case kChoice:
+            if(type == kInGame){
+                dialogue_name = "Select your choice";
+                dialogue_text = "";
+                for(int i=0; i<int(script_element.params.size()); ++i) {
+                    dialogue_text += i+1+":"+script_element.params[i]+"\n";
+                }
+                dialogue_text_disp_chars = dialogue_text.length();
+            }
+            return true;
+        case kSetScriptParam:
+            if(type == kInGame){
+                Object @obj = ReadObjectFromID(dialogue_obj_id);
+                ScriptParams@ params = obj.GetScriptParams();
+
+                int Max = int(script_element.params.size());
+                if(Max % 2 == 1)
+                    DebugText("kSetScriptParam", "ERROR: set_script_param - Number of parameters doesn't match given variables.", 3.0f); //Yay error handling!
+                Max = Max - Max % 2; //This makes it so every parameter HAS to have a value too
+                for(int i=0; i<Max; i += 2) {
+                    string param = script_element.params[i];
+                    string val = script_element.params[i+1];
+                    if(param != "Dialogue" && param != "DisplayName" && param != "NumParticipants" && param != "Script" && param.substr(0, 4) != "obj_") { //parameter b
+                        DebugText("kSetScriptParam", "test: "+atoi(val)+" "+atof(val)+" "+val, 3.0f);
+                        params.SetString(param, val);
+                    }
+                    else
+                        DebugText("kSetScriptParam", "ERROR: set_script_param - parameter "+param+" cannot be modified!", 3.0f);
+                }
+            }
+            break;
         default: { 
             TokenIterator token_iter;
             token_iter.Init();
@@ -1434,6 +1622,15 @@ class Dialogue {
                             }
                         }
                     }
+                }
+            }
+            if(type == kInGame){
+                if(token == "end_dialogue"){
+                    skip_dialogue = false;
+                    is_waiting_time = false;
+                    sub_index = -1;
+                    ending = true;
+                    return true;
                 }
             }
             break;

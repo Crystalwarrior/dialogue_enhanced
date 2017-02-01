@@ -40,12 +40,13 @@
     <EnvObject t0="77.657" t1="6.78528" t2="-52.8137" s0="1" s1="1" s2="1" q0="0" q1="0" q2="0" q3="1" id="1" color_r="1" color_g="1" color_b="1" type_file="Data/Objects/Environment/Statues/rabbit_head.xml">
         <parameters />
     </EnvObject>
-    <PlaceholderObject t0="41.505" t1="13.8582" t2="11.3945" s0="1" s1="1" s2="1" q0="3.3021e-005" q1="0.00708863" q2="0.000932693" q3="0.999974" id="2" type_file="" special_type="0">
+    <PlaceholderObject t0="41.4729" t1="13.8577" t2="11.3914" s0="1.00531" s1="1.00531" s2="1.00531" q0="3.3021e-005" q1="0.00708863" q2="0.000932693" q3="0.999974" id="2" type_file="" special_type="0">
         <parameters>
             <parameter name="Dialogue" type="string" val="empty" />
             <parameter name="DisplayName" type="string" val="diag" />
             <parameter name="NumParticipants" type="int" val="2" />
-            <parameter name="Script" type="string" val='#name &quot;diag&quot;&#x0A;#participants 2&#x0A;set_character_pos 1 41.4871 12.5607 14.0801 0&#x0A;set_character_pos 2 43.9835 11.9199 13.741 180&#x0A;send_character_message 2 &quot;set_eye_dir 41.537 13.324 14.0745 1&quot;&#x0A;send_character_message 2 &quot;set_torso_target 44.1596 12.5409 13.3682 0.662272&quot;&#x0A;send_character_message 2 &quot;set_head_target 41.5805 13.3058 13.7729 0.957189&quot;&#x0A;send_character_message 1 &quot;set_eye_dir 43.8236 12.8257 13.5457 1&quot;&#x0A;send_character_message 1 &quot;set_head_target 43.8963 12.8216 13.5142 1&quot;&#x0A;set_cam 42.8748 12.647 11.9766 0 180 3.21 110.188&#x0A;say 2 &quot;Guard&quot; &quot;Halt! You have broken the law. Pay fine or die.&quot;&#x0A;say 1 &quot;Turner&quot; &quot;...&quot;&#x0A;choice &quot;Fight&quot; &quot;Die&quot;&#x0A;@tag &quot;Fight&quot;&#x0A;say 1 &quot;Turner&quot; &quot;I will fight!&quot;&#x0A;say 2 &quot;Guard&quot; &quot;Welp. Guess we&apos;re fighting then.&quot;&#x0A;send_level_message &quot;make_all_aware&quot;&#x0A;goto &quot;end&quot;&#x0A;@tag &quot;Die&quot;&#x0A;say 1 &quot;Turner&quot; &quot;i&apos;ll die instead&quot;&#x0A;say 2 &quot;Guard&quot; &quot;oh ok&quot;&#x0A;set_script_param &quot;foo&quot; &quot;bar&quot;&#x0A;send_character_message 1 ignite&#x0A;send_level_message &quot;make_all_aware&quot;&#x0A;goto &quot;end&quot;&#x0A;@tag &quot;end&quot;&#x0A;send_character_message 1 &quot;set_dialogue_control false&quot;&#x0A;set_cam_control false&#x0A;set_dialogue_visible false&#x0A;' />
+            <parameter name="Script" type="string" val='#name &quot;diag&quot;&#x0A;#participants 2&#x0A;set_character_pos 1 41.4871 12.5607 14.0801 0&#x0A;set_character_pos 2 43.9835 11.9199 13.741 180&#x0A;send_character_message 2 &quot;set_hostile false&quot;&#x0A;send_character_message 2 &quot;set_eye_dir 41.537 13.324 14.0745 1&quot;&#x0A;send_character_message 2 &quot;set_torso_target 44.1596 12.5409 13.3682 0.662272&quot;&#x0A;send_character_message 2 &quot;set_head_target 41.5805 13.3058 13.7729 0.957189&quot;&#x0A;send_character_message 1 &quot;set_eye_dir 43.8236 12.8257 13.5457 1&quot;&#x0A;send_character_message 1 &quot;set_head_target 43.8963 12.8216 13.5142 1&quot;&#x0A;set_cam 42.8748 12.647 11.9766 0 180 3.21 110.188&#x0A;say 2 &quot;Guard&quot; &quot;Halt! You have broken the law. Pay fine or die.&quot;&#x0A;say 1 &quot;Turner&quot; &quot;...&quot;&#x0A;choice &quot;Fight&quot; &quot;Die&quot;&#x0A;@tag &quot;Fight&quot;&#x0A;say 1 &quot;Turner&quot; &quot;I will fight!&quot;&#x0A;say 2 &quot;Guard&quot; &quot;Welp. Guess we&apos;re fighting then.&quot;&#x0A;send_character_message 2 &quot;set_hostile true&quot;&#x0A;send_level_message &quot;make_all_aware&quot;&#x0A;goto &quot;end&quot;&#x0A;@tag &quot;Die&quot;&#x0A;say 1 &quot;Turner&quot; &quot;i&apos;ll die instead&quot;&#x0A;say 2 &quot;Guard&quot; &quot;oh ok&quot;&#x0A;set_script_param &quot;foo&quot; 1&#x0A;send_character_message 1 ignite&#x0A;goto &quot;end&quot;&#x0A;@tag &quot;end&quot;&#x0A;send_character_message 1 &quot;set_dialogue_control false&quot;&#x0A;set_cam_control false&#x0A;set_dialogue_visible false&#x0A;' />
+            <parameter name="foo" type="string" val="1" />
             <parameter name="obj_1" type="int" val="9" />
             <parameter name="obj_2" type="int" val="11" />
         </parameters>
@@ -140,16 +141,16 @@
             <Color label="Fur" channel="2" red="1" green="1" blue="1" />
         </Palette>
     </ActorObject>
-    <PlaceholderObject t0="41.6787" t1="14.5585" t2="11.3921" s0="0.3" s1="0.3" s2="0.3" q0="3.3021e-005" q1="0.00708863" q2="0.000932693" q3="0.999974" id="9" type_file="" special_type="2">
+    <PlaceholderObject t0="41.6475" t1="14.5617" t2="11.3889" s0="0.301592" s1="0.301592" s2="0.301592" q0="3.3021e-005" q1="0.00708863" q2="0.000932693" q3="0.999974" id="9" type_file="" special_type="2">
         <parameters />
         <Connections>
             <Connection id="8" />
         </Connections>
     </PlaceholderObject>
-    <CameraObject t0="42.2859" t1="14.1187" t2="9.17722" s0="1" s1="1" s2="1" q0="-0.00113342" q1="0.998395" q2="-0.0523264" q3="-0.0216253" id="10">
+    <CameraObject t0="41.2305" t1="16.4153" t2="10.086" s0="1" s1="1" s2="1" q0="-0.0194436" q1="-0.952962" q2="0.295914" q3="-0.0626164" id="10">
         <parameters />
     </CameraObject>
-    <PlaceholderObject t0="41.3287" t1="14.5579" t2="11.397" s0="0.3" s1="0.3" s2="0.3" q0="3.3021e-005" q1="0.00708863" q2="0.000932693" q3="0.999974" id="11" type_file="" special_type="2">
+    <PlaceholderObject t0="41.2956" t1="14.5611" t2="11.3939" s0="0.301592" s1="0.301592" s2="0.301592" q0="3.3021e-005" q1="0.00708863" q2="0.000932693" q3="0.999974" id="11" type_file="" special_type="2">
         <parameters />
         <Connections>
             <Connection id="15" />
@@ -182,7 +183,7 @@
             <parameter name="Teams" type="string" val="guard" />
         </parameters>
         <Connections>
-            <Connection id="-1" />
+            <Connection id="21" />
         </Connections>
         <ItemConnections />
         <Palette />
@@ -194,4 +195,11 @@
             <parameter name="Visible in game" type="int" val="1" />
         </parameters>
     </Hotspot>
+    <PathPointObject t0="65.0852" t1="7.05082" t2="17.3204" s0="1" s1="1" s2="1" q0="0" q1="0" q2="0" q3="1" id="21" type_file="">
+        <parameters>
+            <parameter name="Type" type="string" val="Stand" />
+            <parameter name="Wait" type="float" val="0" />
+        </parameters>
+        <Connections />
+    </PathPointObject>
 </ActorObjects>
